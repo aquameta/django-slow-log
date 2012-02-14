@@ -6,7 +6,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.1.3'
+version = '0.1.4'
 
 # some trove classifiers:
 
@@ -30,9 +30,9 @@ setup(
         'Operating System :: POSIX',
     ],
     keywords='django profiling slow request',
-    author='Jason Moiron',
-    author_email='jmoiron@jmoiron.net',
-    url='http://github.com/jmoiron/django-slow-log',
+    author='Kyle Terry',
+    author_email='kyle@kyleterry.com',
+    url='https://github.com/aquameta/django-slow-log',
     license='MIT',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     include_package_data=True,

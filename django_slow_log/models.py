@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Record(models.Model):
@@ -14,3 +15,5 @@ class Record(models.Model):
     queries = models.IntegerField(null=True, blank=True)
     hostname = models.CharField(max_length=255, null=True, blank=True)
     response_started = models.DateTimeField()
+    user = models.ForeignKey(User,
+            null=True, blank=True)

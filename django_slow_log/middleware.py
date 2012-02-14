@@ -153,6 +153,9 @@ class SlowLogMiddleware(object):
         except:
             pass
 
+    def _request(self, request):
+        pass
+
     def _response(self, request, response=None, exception=None):
         end = self._get_stats()
         start = self.start
@@ -182,6 +185,7 @@ class SlowLogMiddleware(object):
             'queries': query_count,
             'hostname': hostname,
             'response_started': datetime.now(),
+            'user': request.user,
         }
         try:
             offload_slow_logging.delay(info)

@@ -1,0 +1,6 @@
+v0.1.4
+======
+
+Model
+-----
+- Added ForeignKey field to Record pointing at django.contrib.auth.models.User
