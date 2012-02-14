@@ -150,6 +150,9 @@ class SlowLogMiddleware(object):
         except:
             pass
 
+    def _request(self, request):
+        pass
+
     def _response(self, request, response=None, exception=None):
         if not celery_enabled or not getattr(settings, 'OFFLOAD_SLOW_LOG', False):
             return
@@ -172,6 +175,7 @@ class SlowLogMiddleware(object):
             'load_delta': load_delta,
             'queries': len(connection.queries),
             'response_started': datetime.now(),
+            'user': request.user,
         }
         try:
             offload_slow_logging.delay(info)
@@ -179,13 +183,17 @@ class SlowLogMiddleware(object):
             pass
 
     def process_response(self, request, response):
-        try: self._response(request, response)
-        except: pass
+        try:
+            self._response(request, response)
+        except:
+            pass
         return response
 
     def process_exception(self, request, exception):
-        try: self._response(request, exception=exception)
-        except: pass
+        try:
+            self._response(request, exception=exception)
+        except:
+            pass
 
 if celery_enabled:
     @task

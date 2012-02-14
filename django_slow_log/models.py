@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Record(models.Model):
@@ -13,3 +14,5 @@ class Record(models.Model):
     load_delta = models.FloatField()
     queries = models.IntegerField()
     response_started = models.DateTimeField()
+    user = models.ForeignKey(User,
+            null=True, blank=True)
