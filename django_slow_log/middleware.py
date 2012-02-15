@@ -150,47 +150,53 @@ class SlowLogMiddleware(object):
             if cls.disabled and 'localhost' not in request.get_host():
                 return
             self.start = self._get_stats()
+            self._request(request)
         except:
             pass
 
     def _request(self, request):
-        pass
+        path = 'http://' + request.get_host() + request.get_full_path()
+        view = urlresolvers.resolve(request.path)[0]
+        hostname = socket.gethostname()
+        info = {
+            'pid': self.pidstr,
+            'request_method': request.META['REQUEST_METHOD'],
+            'path': path,
+            'django_view': '%s.%s' % (view.__module__, view.__name__),
+            'hostname': hostname,
+            'user': request.user,
+        }
+        self.record = Record(**info)
+        self.record.save()
 
     def _response(self, request, response=None, exception=None):
         end = self._get_stats()
         start = self.start
-        path = 'http://' + request.get_host() + request.get_full_path()
         status_code = response.status_code if response else '500'
         time_delta = end['time'] - start['time']
         mem_delta = end['memory'] - start['memory']
         load_delta = end['load'] - start['load']
-        view = urlresolvers.resolve(request.path)[0]
-        hostname = socket.gethostname()
         if hasattr(connection, 'query_count'):
             query_count = connection.query_count
         else:
-            if settings.DEBUG == False:
+            if settings.DEBUG == True:
                 query_count = len(connection.queries)
             else:
                 query_count = None
         info = {
-            'pid': self.pidstr,
             'status_code': status_code,
             'time_delta': time_delta,
-            'request_method': request.META['REQUEST_METHOD'],
-            'path': path,
-            'django_view': '%s.%s' % (view.__module__, view.__name__),
             'memory_delta': mem_delta,
             'load_delta': load_delta,
             'queries': query_count,
-            'hostname': hostname,
-            'response_started': datetime.now(),
-            'user': request.user,
         }
-        try:
-            offload_slow_logging.delay(info)
-        except:
-            pass
+        self.record.status_code = info['status_code']
+        self.record.time_delta = info['time_delta']
+        self.record.memory_delta = info['memory_delta']
+        self.record.load_delta = info['load_delta']
+        self.record.queries = info['queries']
+        self.record.response_started = datetime.now()
+        self.record.save()
 
     def process_response(self, request, response):
         try:
