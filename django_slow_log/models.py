@@ -8,7 +8,7 @@ class Record(models.Model):
     status_code = models.IntegerField(null=True, blank=True)
     time_delta = models.FloatField(null=True, blank=True)
     request_method = models.CharField(max_length=6)
-    path = models.CharField(max_length=255)
+    path = models.TextField()
     django_view = models.CharField(max_length=255)
     memory_delta = models.IntegerField(null=True, blank=True)
     load_delta = models.FloatField(null=True, blank=True)
