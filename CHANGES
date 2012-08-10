@@ -1,3 +1,10 @@
+v0.5.9
+======
+
+- Autonow removed from request_started.
+- No more process_request.
+- One record is created using one celery task (or not) on process_response.
+
 v0.1.4
 ======
 

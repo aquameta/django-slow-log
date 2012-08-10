@@ -13,7 +13,7 @@ from django.db import connection
 from django.core import urlresolvers
 celery_enabled = True
 try:
-    from celery.decorators import task
+    from celery.task import task
 except ImportError:
     if getattr(settings, 'OFFLOAD_SLOW_LOG', False):
         raise SlowLogConfigurationError(
@@ -142,34 +142,30 @@ class SlowLogMiddleware(object):
             'time': time.time(),
             'memory': self.memory.usage(),
             'load': self.loadavg.current()[0],
+            'datetime': datetime.now(),
         }
 
     def process_request(self, request):
         try:
             cls = SlowLogMiddleware
             if cls.disabled and 'localhost' not in request.get_host():
-                return
+                #return
+                pass
             self.start = self._get_stats()
-            self._request(request)
         except:
             pass
 
-    def _request(self, request):
-        path = 'http://' + request.get_host() + request.get_full_path()
-        view = urlresolvers.resolve(request.path)[0]
-        hostname = socket.gethostname()
-        info = {
-            'pid': self.pidstr,
-            'request_method': request.META['REQUEST_METHOD'],
-            'path': path,
-            'django_view': '%s.%s' % (view.__module__, view.__name__),
-            'hostname': hostname,
-            'user': request.user,
-        }
-        self.record = Record(**info)
-        self.record.save()
+    def process_response(self, request, response):
+        try:
+            self._response(request, response)
+        except:
+            pass
+        return response
 
     def _response(self, request, response=None, exception=None):
+        path = 'https://' + request.get_host() + request.get_full_path()
+        view = urlresolvers.resolve(request.path)[0]
+        hostname = socket.gethostname()
         end = self._get_stats()
         start = self.start
         status_code = response.status_code if response else '500'
@@ -184,32 +180,28 @@ class SlowLogMiddleware(object):
             else:
                 query_count = None
         info = {
+            'pid': self.pidstr,
+            'request_method': request.META['REQUEST_METHOD'],
+            'request_started': start['datetime'],
+            'path': path,
+            'django_view': '%s.%s' % (view.__module__, view.__name__),
+            'hostname': hostname,
+            'user': request.user,
             'status_code': status_code,
             'time_delta': time_delta,
             'memory_delta': mem_delta,
             'load_delta': load_delta,
             'queries': query_count,
+            'response_started': end['datetime'] if response else None,
         }
-        self.record.status_code = info['status_code']
-        self.record.time_delta = info['time_delta']
-        self.record.memory_delta = info['memory_delta']
-        self.record.load_delta = info['load_delta']
-        self.record.queries = info['queries']
-        self.record.response_started = datetime.now()
-        self.record.save()
-
-    def process_response(self, request, response):
-        try:
-            self._response(request, response)
-        except:
-            pass
-        return response
+        offload_slow_logging.delay(info)
 
     def process_exception(self, request, exception):
-        try:
-            self._response(request, exception=exception)
-        except:
-            pass
+        return None
+        #try:
+        #    self._response(request, exception=exception)
+        #except:
+        #    pass
 
 
 if celery_enabled:

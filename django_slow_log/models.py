@@ -14,7 +14,7 @@ class Record(models.Model):
     load_delta = models.FloatField(null=True, blank=True)
     queries = models.IntegerField(null=True, blank=True)
     hostname = models.CharField(max_length=255, null=True, blank=True)
-    request_started = models.DateTimeField(auto_now=True)
+    request_started = models.DateTimeField(null=True, blank=True, auto_now=False)
     response_started = models.DateTimeField(null=True, blank=True)
     user = models.ForeignKey(User,
             null=True, blank=True)
