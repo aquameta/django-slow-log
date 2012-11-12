@@ -11,6 +11,7 @@ from django_slow_log.exceptions import SlowLogConfigurationError
 from django.conf import settings
 from django.db import connection
 from django.core import urlresolvers
+from django.contrib.auth.models import User
 celery_enabled = True
 try:
     from celery.task import task
@@ -186,7 +187,7 @@ class SlowLogMiddleware(object):
             'path': path,
             'django_view': '%s.%s' % (view.__module__, view.__name__),
             'hostname': hostname,
-            'user': request.user,
+            'user': request.user if isinstance(request.user, User) else None,
             'status_code': status_code,
             'time_delta': time_delta,
             'memory_delta': mem_delta,
